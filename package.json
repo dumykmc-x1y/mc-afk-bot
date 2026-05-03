@@ -1,12 +1,9 @@
 {
-  "name": "mc-bedrock-bot",
+  "name": "mc-afk-bot",
   "version": "1.0.0",
-  "description": "Bot AFK Minecraft Bedrock 24/7",
   "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
   "dependencies": {
-    "bedrock-protocol": "^1.26.0"
+    "bedrock-protocol": "latest",
+    "express": "latest"
   }
 }
