@@ -1,62 +1,47 @@
-const bedrock = require('bedrock-protocol');
-const express = require('express');
-
-// 1. Web Server Sederhana (Agar hosting tidak mematikan bot)
-const app = express();
-const port = process.env.PORT || 8080;
-
-app.get('/', (req, res) => {
-  res.send('Bot AFK Minecraft 24/7 sedang berjalan!');
-});
-
-app.listen(port, () => {
-  console.log(`Server monitoring aktif di port ${port}`);
-});
-
-// 2. Konfigurasi Bot Minecraft Bedrock
-const options = {
-  host: '65.108.0.184',
-  port: 31563,
-  username: 'BotAFK_Discloud', // Kamu bisa ganti nama ini
-  offline: true,               // Karena server mode Offline/Cracked
-  raknetBackend: 'js',         // WAJIB: Agar lancar di hosting Linux tanpa error compile
-  version: '1.20.80'           // Versi server target
-};
+const mineflayer = require('mineflayer')
+const http = require('http')
 
 function startBot() {
-  console.log('--- Mencoba menyambungkan ke Server ---');
-  
-  const client = bedrock.createClient(options);
+    const bot = mineflayer.createBot({
+        host: 'faris.seedloaf.gg',
+        port: 25565,
+        username: 'AFK_Worker',
+        version: '1.21.11'
+    })
 
-  // Saat berhasil masuk
-  client.on('join', () => {
-    console.log('✅ Berhasil! Bot sudah masuk ke dalam server.');
-  });
+    bot.on('spawn', () => {
+        console.log('--- BOT ONLINE: Menjaga Server ---');
+        const mover = setInterval(() => {
+            if (!bot.entity) return
+            let y = bot.entity.position.y
+            let act = y <= 0 ? 'jump' : (y >= 67 ? 'sneak' : null)
+            if (act) {
+                bot.setControlState(act, true)
+                setTimeout(() => bot.setControlState(act, false), 500)
+            }
+        }, 20000)
+        bot.once('end', () => clearInterval(mover))
+    })
 
-  // Menangani error agar bot tidak mati permanen
-  client.on('error', (err) => {
-    console.error(`❌ Terjadi kesalahan: ${err.message}`);
-  });
+    bot.on('error', (err) => {
+        console.log(`Error: ${err.code}`);
+        bot.end();
+    })
 
-  // Fitur Auto-Reconnect jika terputus (Disconnect)
-  client.on('disconnect', (packet) => {
-    console.log('⚠️ Bot terputus. Alasan:', packet.reason);
-    reconnect();
-  });
-
-  client.on('close', () => {
-    console.log('⚠️ Koneksi tertutup.');
-    reconnect();
-  });
+    bot.on('end', () => {
+        console.log('Terputus, mencoba masuk lagi dalam 15 detik...');
+        setTimeout(startBot, 15000); 
+    })
 }
 
-// Fungsi untuk mencoba masuk kembali setiap 10 detik
-function reconnect() {
-  console.log('🔄 Mencoba masuk kembali dalam 10 detik...');
-  setTimeout(() => {
-    startBot();
-  }, 10000);
-}
+// 1. Jalankan Bot Minecraft
+startBot()
 
-// Jalankan bot untuk pertama kali
-startBot();
+// 2. JALANKAN WEB SERVER (WAJIB AGAR REPLIT TIDAK TIDUR)
+http.createServer((req, res) => {
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.write("Bot AFK Seedloaf sedang berjalan 24/7!");
+    res.end();
+}).listen(8080);
+
+console.log("Web Server aktif di Port 8080. UptimeRobot siap memantau!");
